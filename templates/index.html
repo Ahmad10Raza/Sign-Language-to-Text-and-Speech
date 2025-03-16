@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sign Language Recognition</title>
+  <style>
+    /* Initially hide the video container until the start button is clicked */
+    #videoContainer {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sign Language Recognition</h1>
+  <!-- Start button to trigger video stream -->
+  <button id="startButton">Start</button>
+  <div id="videoContainer">
+    <!-- Image element that displays the video feed -->
+    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+    <!-- Display the recognized text -->
+    <h2 id="predictionText">Waiting for prediction...</h2>
+  </div>
+  
+  <script>
+    // When the start button is clicked, show the video container and hide the button
+    const startButton = document.getElementById('startButton');
+    const videoContainer = document.getElementById('videoContainer');
+    const predictionText = document.getElementById('predictionText');
+    
+    startButton.addEventListener('click', function() {
+      videoContainer.style.display = 'block';
+      startButton.style.display = 'none';
+    });
+    
+    // Poll the server every second to get the latest recognized sign
+    setInterval(() => {
+      fetch('/get_prediction')
+        .then(response => response.json())
+        .then(data => {
+          predictionText.textContent = 'Recognized: ' + data.prediction;
+          // Use the Web Speech API to speak the recognized text
+          if (data.prediction) {
+            let utterance = new SpeechSynthesisUtterance(data.prediction);
+            speechSynthesis.speak(utterance);
+          }
+        });
+    }, 1000);
+  </script>
+</body>
+</html>
